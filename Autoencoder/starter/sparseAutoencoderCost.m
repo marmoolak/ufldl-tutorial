@@ -52,63 +52,39 @@ s2 = hiddenSize;
 p = sparsityParam;
 
 % build cost function
-for i = 1:m
 	
-	% 1: feedforward
-	z2 = W1 * data(:,i) + b1;
-	a2 = sigmoid(z2);
+% 1: feedforward
+z2 = W1 * data + repmat(b1,1,m);
+a2 = sigmoid(z2);
 
-	z3 = W2 * a2 + b2;
-	a3 = sigmoid(z3);
+z3 = W2 * a2 + repmat(b2,1,m);
+a3 = sigmoid(z3);
 
-	% autoencoder uses x for y by defintion
-	J = J + sum((a3 - data(:,i)) .^ 2) / 2;
+% autoencoder uses x for y by defintion
+J = (sum(sum((a3 - data) .^ 2)) / 2) / m;
 
-	% roh hat j a2 acc for sparce parameter
-	phat = phat + a2;
+% roh hat j a2 acc for sparce parameter
+phat = sum(a2, 2) / m;
 	
-end
-
 regTerm = (lambda / 2) * (sum(sum(W1 .^2)) + sum(sum(W2 .^2)));
-phat = phat / m;
 sparseTerm = sum(p .* log(p./phat) + (1-p) .* log((1-p)./(1-phat)));
 	
 % sparce & regularixation of cost funtion here
-cost = (J / m) + regTerm + beta * sparseTerm;
-
+cost = J + regTerm + beta * sparseTerm;
 
 % now for the backprop gradient computation
-for i = 1:m
-
-	% 1: feedforward
-	a1 = data(:,i);
-	z2 = W1 * a1 + b1;
-	a2 = sigmoid(z2);
-
-	z3 = W2 * a2 + b2;
-	a3 = sigmoid(z3);
-
-	% 2: output layer
-	delta3 = -(data(:,i) - a3) .* (a3 .* (1 - a3));
+% 2: output layer
+delta3 = -(data - a3) .* (a3 .* (1 - a3));
 	
-	% 3: hidden layer
-	sparseTerm = -(p./phat) + (1-p) ./ (1-phat);
-	delta2 = (W2' * delta3 + beta * sparseTerm) .* a2 .* (1 - a2);
+% 3: hidden layer
+sparseTerm = -(p./phat) + (1-p) ./ (1-phat);
+delta2 = (W2' * delta3 + beta * repmat(sparseTerm, 1, m)) .* a2 .* (1 - a2);
 
-	% 4: accumulate gradient
-	W1grad = W1grad + delta2 * a1';
-	W2grad = W2grad + delta3 * a2';
-	b1grad = b1grad + delta2;
-	b2grad = b2grad + delta3;
-
-end
-
-W1grad = W1grad / m + lambda * W1;
-W2grad = W2grad / m + lambda * W2;
-
-b1grad = b1grad / m;
-b2grad = b2grad / m;
-
+% 4: accumulate gradient
+W1grad = (delta2 * data') / m + lambda * W1;
+W2grad = (delta3 * a2')   / m + lambda * W2;
+b1grad = sum(delta2, 2) / m;
+b2grad = sum(delta3, 2) / m;
 
 
 %-------------------------------------------------------------------
