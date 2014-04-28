@@ -120,8 +120,6 @@ options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
                           % sparseAutoencoderCost.m satisfies this.
 % options.maxIter = 400;  % Maximum number of iterations of L-BFGS to run 
 
-% Any more than 70 always bombs out with out-of-memory error using OCTAVE
-% In addition, must start with a "fresh" ocatave session.
 options.maxIter = 400;
 
 options.display = 'on';
