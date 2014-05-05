@@ -119,6 +119,7 @@ options.Method = 'lbfgs';
 options.maxIter = 400;
 options.display = 'on';
 options.useMex = 0;
+% options.LS_init = 2;
 
 [optTheta, cost] = minFunc( @(p) sparseAutoencoderLinearCost(p, ...
                                    visibleSize, hiddenSize, ...
